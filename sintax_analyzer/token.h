@@ -17,6 +17,6 @@ private:
     string name;
     int type;
 public:
-    Token(string& tkn) { name = tkn; };
+    Token(string tkn) { name = tkn; };
 };
 
