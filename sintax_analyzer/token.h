@@ -2,6 +2,8 @@
 
 #include <string>
 
+using namespace std;
+
 enum class token_type
 {
     Identifier,
