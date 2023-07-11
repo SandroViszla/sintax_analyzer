@@ -1,31 +1,43 @@
-﻿#pragma once
-#include <iostream>
-#include <regex>
+﻿#include <iostream>
+#include <regex> // не стоит это использовать
 #include <string>
 
-//#include "token.h"
 
-using namespace std;
+const int CommandsAmount = 3;
 
-enum class CommandType : int { CREATE, ALTER , DROP };
+enum class CommandType { // пример использования: CommandNames[(int)CommandType::CREATE] = "create table" и с CommandTypesFunctions работает аналогично
+	CREATE, 
+	ALTER, 
+	DROP 
+};
 
-class Analyzer;
-
-typedef bool (Analyzer::*TypeCommandAnalise)();
+const std::string CommandNames[CommandsAmount] = { // статический массив для основоных операторов, с которых может начинаться запрос
+	"create table",
+	"alter table",
+	"drop table"
+};
 
 class Analyzer
 {
 private:
-	string command;
-	static TypeCommandAnalise functions_array[10];
-	bool AnaliseCreateTable();
-	bool AnaliseAlterTable();
-	bool AnaliseDropTable();
+	std::string command;
+	static void initialise();
+	bool StrStartsWith(std::string);
 public:
 	Analyzer();
-	static void initialise();
-	bool StartAnalis(string command);
+	bool AnaliseCreateTable(); 
+	bool AnaliseAlterTable();
+	bool AnaliseDropTable();
+	bool StartAnalis(std::string command);
 
+};
+
+typedef bool (Analyzer::*TypeCommandAnalise)();
+
+const TypeCommandAnalise CommandTypesFunctions[CommandsAmount] = { // статический массив для основоных операторов, с которых может начинаться запрос
+	&Analyzer::AnaliseCreateTable,	// здесь собраны все специализированные методы для каждого типа запроса
+	&Analyzer::AnaliseAlterTable,
+	&Analyzer::AnaliseDropTable
 };
 
 Analyzer::Analyzer() 
@@ -35,15 +47,13 @@ Analyzer::Analyzer()
 
 void Analyzer::initialise()
 {
-	functions_array[(int)CommandType::CREATE] = &Analyzer::AnaliseCreateTable;
-	functions_array[(int)CommandType::ALTER] = &Analyzer::AnaliseAlterTable;
-	functions_array[(int)CommandType::DROP] =  &Analyzer::AnaliseDropTable;
+	//может потом пригодится
 }
 
-bool Analyzer::AnaliseCreateTable()
+bool Analyzer::AnaliseCreateTable()		// специализированные методы. они нужны так для каждого ключевого оператора (create alter и т д ) используются разные вспомогательные операторы
 {
-	return true;
-}
+	return true; // пока методы не работают
+}		// в перспективе они будут осуществлять лексическую проверку и/или выполнение запроса
 
 bool Analyzer::AnaliseAlterTable()
 {
@@ -55,38 +65,39 @@ bool Analyzer::AnaliseDropTable()
 	return true;
 }
 
-bool Analyzer::StartAnalis(string command)
+bool Analyzer::StrStartsWith(std::string key) // проверка с какого ключевого слова начинается запрос
 {
-	regex expression("create table.*;");
-	if (regex_match(command.c_str(), expression))
-		cout << "true\n";
-	else cout << "false\n";
-	return true;
+	for (int i = 0; i < this->command.length(); i++)
+	{
+		if (this->command[i] == ' ' || this->command[i] == '\t')	//игнорирование пробелов и табуляций
+			continue;
+		if (this->command.find(key) == i)
+			return true;
+		else
+			return false;
+	}
+}
+
+bool Analyzer::StartAnalis(std::string _command)	//запуск анализа 
+{
+	command = _command;
+	for (int i = 0; i < CommandsAmount; i++)
+	{
+		if (this->StrStartsWith(CommandNames[i]))
+		{
+			return ((this->*CommandTypesFunctions[i])());	// в зависимости от ключевого слова в начале запроса вызываются разные специализированные методы
+		}
+	}
+	return false;
 }
 
 int main()
 {
-/*	string command = "create table tablename name";
-	regex regular1("create table"
-				   " (\\w)+");
-	cmatch result;
-	if (regex_match(command.c_str(), result, regular1))
-	{
-		for (int i = 0; i < result.size(); i++)
-			cout << result[i] << endl;
-	}
-	else cout << "false\n";
-	return 0;
-	string text = "Create table";
-	Token token(text);
-	Token token2(text);
-	*/
-	string text = "create table tablename(id int, name varchar(10), cost int);";
-	string text2 = "create table;";
+	std::string text = "12345";
+	std::string text2 = "create table tablename(id int, name varchar(10), cost int);";
 	Analyzer analyzer;
-	analyzer.initialise();
-	analyzer.StartAnalis(text);
-	analyzer.StartAnalis(text2);
-
+	std::cout << analyzer.StartAnalis(text) << std::endl;
+	std::cout << analyzer.StartAnalis(text2) << std::endl;
+	return 0;
 }
 
