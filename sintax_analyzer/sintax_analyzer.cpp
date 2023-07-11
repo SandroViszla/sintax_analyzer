@@ -32,7 +32,7 @@ public:
 
 };
 
-typedef bool (Analyzer::*TypeCommandAnalise)();
+typedef bool (Analyzer::*TypeCommandAnalise)();		//тип данных, представляющий собой указатель на метод
 
 const TypeCommandAnalise CommandTypesFunctions[CommandsAmount] = { // статический массив для основоных операторов, с которых может начинаться запрос
 	&Analyzer::AnaliseCreateTable,	// здесь собраны все специализированные методы для каждого типа запроса
