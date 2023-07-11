@@ -21,7 +21,7 @@ class Analyzer
 {
 private:
 	std::string command;
-	static void initialise();
+	void initialise();
 	bool StrStartsWith(std::string);
 public:
 	Analyzer();
