@@ -35,7 +35,7 @@ public:
     token_type GetType() { return this->type; };
     std::string GetName() { return this->name; };
     bool IsIdentifier(const std::string& str);
-    std::vector<Token>* GetTokens(const std::string& str);
+    std::vector<Token> GetTokens(const std::string& str);
 
 };
 
@@ -61,18 +61,18 @@ token_type Token::FindType(const std::string& tkn) // для каждого подтипа запрос
     else return token_type::Error;
 }
 
-std::vector<Token>* Token::GetTokens(const std::string& str) {
-    std::vector<Token>* tokens = new std::vector<Token>(); // список слов
+std::vector<Token> Token::GetTokens(const std::string& str) {
+    std::vector<Token> tokens; // список слов
     std::string token; // текущее слово
     std::array<char, 10> separators = {' ', '\t', '\n', '(', ')', '[', '{', '}', '.', ','};
     for (char c : str) { // проходим по каждому символу в строке
         if (std::find(separators.begin(), separators.end(), c) != separators.end()) { // если символ является разделителем
             if (!token.empty()) { // если текущее слово не пустое
-                tokens->push_back(Token(token)); // добавляем его в список слов
+                tokens.push_back(Token(token)); // добавляем его в список слов
                 token.clear(); // очищаем текущее слово
             }
             if (c != ' ' && c != '\t' && c != '\n') {
-                tokens->push_back(Token(std::string(1, c)));
+                tokens.push_back(Token(std::string(1, c)));
             }
         }
         else { // иначе добавляем символ в текущее слово
@@ -80,7 +80,7 @@ std::vector<Token>* Token::GetTokens(const std::string& str) {
         }
     }
     if (!token.empty()) { // добавляем оставшееся слово в список (если оно есть)
-        tokens->push_back(Token(token));
+        tokens.push_back(Token(token));
     }
     return tokens; // возвращаем список слов
 }

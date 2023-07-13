@@ -26,7 +26,6 @@ class Analyzer
 {
 private:
 	std::string command;
-	std::vector<Token>* TokensLinePtr;
 	void initialise();
 	bool StrStartsWith(std::string);
 public:
@@ -59,30 +58,26 @@ void Analyzer::initialise()
 bool Analyzer::AnaliseCreateTable()		// специализированные методы. они нужны так для каждого ключевого оператора (create alter и т д ) используются разные вспомогательные операторы
 {
 	Token tkn("");
-	if (TokensLinePtr==NULL ) {
-		std::cout << "::::" << std::endl;
-		//TokensLinePtr->clear(); // очищаем старый массив токенов, чтобы перезаписать его
-	}
-	std::vector<Token>* TokensLinePtr = tkn.GetTokens(command);
-	for (auto& tkn : *TokensLinePtr)
+	std::vector<Token> TokensLine = tkn.GetTokens(command);
+	for (auto& tkn : TokensLine)
 	{
 		//std::cout << tkn.GetName() << (int)tkn.GetType();
 	}
-	if ((*TokensLinePtr)[0].GetType() != token_type::MainOperator && (*TokensLinePtr)[1].GetType() != token_type::MainOperator)
+	if (TokensLine[0].GetType() != token_type::MainOperator && TokensLine[1].GetType() != token_type::MainOperator)
 		return false;
-	if ((*TokensLinePtr)[2].GetType() != token_type::Identifier) return false;
-	if ((*TokensLinePtr)[3].GetType() != token_type::LPAR) return false;
+	if (TokensLine[2].GetType() != token_type::Identifier) return false;
+	if (TokensLine[3].GetType() != token_type::LPAR) return false;
 	int i = 4;
-	for (; i < TokensLinePtr->size()-4;i+=3)
+	for (; i < TokensLine.size()-4;i+=3)
 	{
-		if ((*TokensLinePtr)[i].GetType() != token_type::Identifier) return false;
-		if ((*TokensLinePtr)[i+1].GetType() != token_type::VariableType) return false;
-		if ((*TokensLinePtr)[i + 2].GetType() != token_type::COMMA) return false;
+		if (TokensLine[i].GetType() != token_type::Identifier) return false;
+		if (TokensLine[i+1].GetType() != token_type::VariableType) return false;
+		if (TokensLine[i + 2].GetType() != token_type::COMMA) return false;
 	}
-	if ((*TokensLinePtr)[i].GetType() != token_type::Identifier) return false;
-	if ((*TokensLinePtr)[++i].GetType() != token_type::VariableType) return false;
-	if ((*TokensLinePtr)[++i].GetType() != token_type::RPAR) return false;
-	if ((*TokensLinePtr)[++i].GetType() != token_type::SMCLN) return false;
+	if (TokensLine[i].GetType() != token_type::Identifier) return false;
+	if (TokensLine[++i].GetType() != token_type::VariableType) return false;
+	if (TokensLine[++i].GetType() != token_type::RPAR) return false;
+	if (TokensLine[++i].GetType() != token_type::SMCLN) return false;
 	return true;
 
 }
