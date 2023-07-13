@@ -1,49 +1,14 @@
 ﻿#pragma once
+
+#include "token.h"
+#include "sintax_analyzer.h"
+
 #include <iostream>
 #include <regex> // не стоит это использовать
 #include <string>
 #include <vector>
 #include <cctype>
 
-#include "token.h"
-
-
-const int CommandsAmount = 3;
-
-enum class CommandType { // пример использования: CommandNames[(int)CommandType::CREATE] = "create table" и с CommandTypesFunctions работает аналогично
-	CREATE, 
-	ALTER, 
-	DROP 
-};
-
-const std::string CommandNames[CommandsAmount] = { // статический массив для основоных операторов, с которых может начинаться запрос
-	"create table",
-	"alter table",
-	"drop table"
-};
-
-class Analyzer
-{
-private:
-	std::string command;
-	void initialise();
-	bool StrStartsWith(std::string);
-public:
-	Analyzer();
-	bool AnaliseCreateTable(); 
-	bool AnaliseAlterTable();
-	bool AnaliseDropTable();
-	bool StartAnalis(std::string command);
-
-};
-
-typedef bool (Analyzer::*TypeCommandAnalise)();		//тип данных, представляющий собой указатель на метод
-
-const TypeCommandAnalise CommandTypesFunctions[CommandsAmount] = { // статический массив для основоных операторов, с которых может начинаться запрос
-	&Analyzer::AnaliseCreateTable,	// здесь собраны все специализированные методы для каждого типа запроса
-	&Analyzer::AnaliseAlterTable,
-	&Analyzer::AnaliseDropTable
-};
 
 Analyzer::Analyzer() 
 { 
@@ -57,19 +22,17 @@ void Analyzer::initialise()
 
 bool Analyzer::AnaliseCreateTable()		// специализированные методы. они нужны так для каждого ключевого оператора (create alter и т д ) используются разные вспомогательные операторы
 {
-	Token tkn("");
-	std::vector<Token> TokensLine = tkn.GetTokens(command);
-	for (auto& tkn : TokensLine)
-	{
+	std::vector<Token> TokensLine = Token::GetTokens(command);
+	if (7 >= TokensLine.size()) return false;
+	for (auto& tkn : TokensLine) {
 		//std::cout << tkn.GetName() << (int)tkn.GetType();
 	}
 	if (TokensLine[0].GetType() != token_type::MainOperator && TokensLine[1].GetType() != token_type::MainOperator)
 		return false;
 	if (TokensLine[2].GetType() != token_type::Identifier) return false;
 	if (TokensLine[3].GetType() != token_type::LPAR) return false;
-	int i = 4;
-	for (; i < TokensLine.size()-4;i+=3)
-	{
+	int i = 4; //size_t
+	for (; i < TokensLine.size()-4;i+=3) {
 		if (TokensLine[i].GetType() != token_type::Identifier) return false;
 		if (TokensLine[i+1].GetType() != token_type::VariableType) return false;
 		if (TokensLine[i + 2].GetType() != token_type::COMMA) return false;
@@ -85,11 +48,40 @@ bool Analyzer::AnaliseCreateTable()		// специализированные м�
 
 bool Analyzer::AnaliseAlterTable()
 {
+	int i = 3;
+	std::vector<Token> TokensLine = Token::GetTokens(command);
+	if ( 6 >= TokensLine.size()) return false;
+	if (TokensLine[0].GetType() != token_type::MainOperator && TokensLine[1].GetType() != token_type::MainOperator)
+		return false;
+	if (TokensLine[2].GetType() != token_type::Identifier) return false;
+	if ((TokensLine[3].GetName())._Equal("add")) {
+		if (TokensLine[++i].GetType() != token_type::Identifier) return false;
+		if (TokensLine[++i].GetType() != token_type::VariableType) return false;
+	}
+	else if ((TokensLine[3].GetName())._Equal("alter")) {
+		if (!(TokensLine[++i].GetName())._Equal("column")) return false;
+		if (TokensLine[++i].GetType() != token_type::Identifier) return false;
+		if (TokensLine[++i].GetType() != token_type::VariableType) return false;
+	}
+	else if ((TokensLine[3].GetName())._Equal("drop")) {
+		if (!(TokensLine[++i].GetName())._Equal("column")) return false;
+		if (TokensLine[++i].GetType() != token_type::Identifier) return false;
+	}
+	else return false;
+	if (7 >= TokensLine.size()) {
+		if (TokensLine[++i].GetType() != token_type::SMCLN) return false;
+	}
 	return true;
 }
 
 bool Analyzer::AnaliseDropTable()
 {
+	std::vector<Token> TokensLine = Token::GetTokens(command);
+	if (4 != TokensLine.size()) return false;
+	if (TokensLine[0].GetType() != token_type::MainOperator && TokensLine[1].GetType() != token_type::MainOperator)
+		return false;
+	if (TokensLine[2].GetType() != token_type::Identifier) return false;
+	if (TokensLine[3].GetType() != token_type::SMCLN) return false;
 	return true;
 }
 
@@ -113,9 +105,6 @@ bool Analyzer::StartAnalis(std::string _command)	//запуск анализа
 	for (auto& c : _command) {
 		command += std::tolower(c);
 	}
-	//if (!TokensLinePtr->empty()) {
-		//TokensLinePtr->clear(); // очищаем старый массив токенов, чтобы перезаписать его
-	//}
 	for (int i = 0; i < CommandsAmount; i++) {
 		if (this->StrStartsWith(CommandNames[i]))
 		{
@@ -127,16 +116,19 @@ bool Analyzer::StartAnalis(std::string _command)	//запуск анализа
 
 int main()
 {
-	std::string text = "12345";
+	std::string text1 = "drop table tablename;";
 	std::string text2 = "create table tablename (id int, data date, cost int);";
+	std::string text3 = "alter table tablename add id int;";
 	Analyzer analyzer;
-	std::cout << analyzer.StartAnalis(text) << std::endl;
+	std::cout << analyzer.StartAnalis(text1) << std::endl;
 	std::cout << analyzer.StartAnalis(text2) << std::endl;
-	std::cout << analyzer.StartAnalis(text2) << std::endl;
+	std::cout << analyzer.StartAnalis(text3) << std::endl;
 	return 0;
 }
 
 /*
+пока только это работает
+
 CREATE TABLE table_name
 (
 	column_name_1 column_type_1,
@@ -145,12 +137,10 @@ CREATE TABLE table_name
 	column_name_N column_type_N,
 );
 
-ALTER TABLE название_таблицы [WITH CHECK | WITH NOCHECK]
-{ ADD название_столбца тип_данных_столбца [атрибуты_столбца] |
+ALTER TABLE название_таблицы
+{ ADD название_столбца тип_данных_столбца |
   DROP COLUMN название_столбца |
-  ALTER COLUMN название_столбца тип_данных_столбца [NULL|NOT NULL] |
-  ADD [CONSTRAINT] определение_ограничения |
-  DROP [CONSTRAINT] имя_ограничения}
+  ALTER COLUMN название_столбца тип_данных_столбца }
 
 DROP TABLE table_name
 */

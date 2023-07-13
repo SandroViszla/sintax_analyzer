@@ -26,5 +26,8 @@
     <ClInclude Include="token.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="sintax_analyzer.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -131,6 +131,7 @@
     <ClCompile Include="token.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="sintax_analyzer.h" />
     <ClInclude Include="token.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
